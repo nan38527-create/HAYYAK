@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Room Control - HAYYAK</title>
+    <link rel="icon" type="image/x-icon" href="favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Roboto&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- START: Firebase SDK -->
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+      import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyCog9kvQI1va08Ra_SXzo7ZiUGchTN3Pec",
+        authDomain: "hayyak-db039.firebaseapp.com",
+        projectId: "hayyak-db039",
+        storageBucket: "hayyak-db039.appspot.com",
+        messagingSenderId: "766242487044",
+        appId: "1:766242487044:web:3e3d4c857afaf88953ee51"
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      window.db = getFirestore(app);
+      window.firebase = { doc, getDoc, setDoc, updateDoc, arrayUnion, serverTimestamp };
+    </script>
+    <!-- END: Firebase SDK -->
+    <style>
+        :root {
+            --primary: #16243d;
+            --secondary: #2a3851;
+            --accent: #D4AF37; /* Gold */
+            --light: #f8f9fa;
+            --dark: #2c3e50;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px 40px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-family: 'Tajawal', sans-serif;
+            font-size: 2.5rem;
+            color: var(--accent);
+        }
+
+        .home-btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
+
+        .home-btn:hover {
+            background: white;
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .main-header {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.2rem;
+            color: var(--primary);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            align-items: stretch; /* Ensures cards in a row have same height */
+        }
+
+        .control-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            animation: cardEnter 0.5s ease-out forwards;
+            opacity: 0; /* Start hidden for animation */
+        }
+
+        .control-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Staggered animation delay for cards */
+        .control-card:nth-child(1) { animation-delay: 0.1s; }
+        .control-card:nth-child(2) { animation-delay: 0.2s; }
+        .control-card:nth-child(3) { animation-delay: 0.3s; }
+        .control-card:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes cardEnter {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .control-card h3 {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Lighting Controls */
+        .light-scenes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .scene-btn {
+            padding: 10px;
+            border: 1px solid #ddd;
+            background: var(--light);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .scene-btn:hover, .scene-btn.active {
+            background: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+
+        .temp-scenes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .temp-scene-btn {
+            padding: 10px;
+            border: 1px solid #ddd;
+            background: var(--light);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .temp-scene-btn:hover, .temp-scene-btn.active {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .slider-control {
+            margin-top: 10px;
+        }
+        .slider-control label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        .slider-control input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        /* Temperature Controls */
+        .temp-display {
+            text-align: center;
+            font-size: 3rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin: 15px 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .temp-display.updating {
+            opacity: 0;
+        }
+
+        .temp-adjust {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .temp-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: none;
+            background: var(--primary);
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .temp-btn:hover {
+            background: var(--accent);
+            transform: scale(1.05);
+        }
+
+        .temp-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Service Controls */
+        .service-list {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1; /* Allows this list to fill available space */
+            gap: 15px;
+        }
+
+        .service-btn {
+            padding: 15px;
+            background: var(--light);
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .service-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .service-btn i {
+            color: var(--accent);
+            font-size: 1.2rem;
+            width: 20px;
+        }
+
+        .service-btn:hover i {
+            color: white;
+        }
+
+        .service-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Mood Advisor Chat Styles */
+        .chat-window {
+            flex-grow: 1;
+            background: #f0f4f8;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-message {
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 80%;
+            line-height: 1.4;
+            opacity: 0; /* Start hidden for animation */
+            animation: messageFadeInUp 0.5s ease-out forwards;
+        }
+
+        @keyframes messageFadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-message.user {
+            background: var(--primary);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-message.bot {
+            background: white;
+            color: var(--dark);
+            align-self: flex-start;
+            border-top-left-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        #mood-input {
+            flex-grow: 1;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 0 15px;
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px;
+            }
+            header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+        }
+    </style>
+    <style>
+        /* Custom Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.visible .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-content textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-family: 'Roboto', sans-serif;
+            font-size: 1rem;
+            resize: vertical;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .cancel-btn {
+            background: #eee;
+            color: #333;
+        }
+        .cancel-btn:hover {
+            background: #ddd;
+        }
+
+        .submit-btn {
+            background: var(--primary);
+            color: white;
+        }
+        .submit-btn:hover {
+            background: var(--accent);
+        }
+    </style>
+    <style>
+        /* AI Agent Modal Styles (from smart.html) */
+        .floating-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px; /* Changed from left to right */
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            border: none;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            cursor: pointer;
+            z-index: 1002;
+            transition: var(--transition);
+        }
+
+        .floating-btn:hover {
+            background: var(--accent);
+            transform: scale(1.1);
+        }
+
+        .ai-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
+            display: none; /* Hidden by default */
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ai-modal-content {
+            position: relative; /* Changed from absolute for centering */
+            border-radius: 15px;
+            width: 90%;
+            max-width: 450px;
+            height: 70vh;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: white;
+        }
+
+        .ai-modal-header {
+            padding: 15px 20px;
+            background: var(--primary);
+            color: var(--accent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Smart Room Control</h1>
+        <a href="homePage.html" class="home-btn"><i class="fas fa-home"></i> Return to Home Page</a>
+    </header>
+
+    <main class="main-content">
+   
+        <div class="controls-grid">
+            <!-- Lighting Card -->
+            <div class="control-card">
+                <h3><i class="fas fa-lightbulb"></i> Lighting & Ambiance</h3>
+                <div class="light-scenes">
+                    <button class="scene-btn">Bright</button>
+                    <button class="scene-btn">Relax</button>
+                    <button class="scene-btn">Movie</button>
+                    <button class="scene-btn">Sleep</button>
+                </div>
+                <div class="slider-control">
+                    <label for="brightness">Brightness</label>
+                    <input type="range" id="brightness" min="0" max="100" value="80">
+                </div>
+            </div>
+
+            <!-- Temperature Card -->
+            <div class="control-card">
+                <h3><i class="fas fa-thermometer-half"></i> Climate Control</h3>
+                <div class="temp-scenes">
+                    <button class="temp-scene-btn">Auto</button>
+                    <button class="temp-scene-btn">Cool</button>
+                    <button class="temp-scene-btn">Sleep</button>
+                    <button class="temp-scene-btn">Showering</button>
+                </div>
+                <div class="temp-display">22°C</div>
+                <div class="temp-adjust">
+                    <button class="temp-btn" aria-label="Decrease temperature">-</button>
+                    <input type="range" min="16" max="28" value="22" step="0.5" style="width: 70%;">
+                    <button class="temp-btn" aria-label="Increase temperature">+</button>
+                </div>
+            </div>
+
+            <!-- Services Card -->
+            <div class="control-card">
+                <h3><i class="fas fa-concierge-bell"></i> Room Services</h3>
+                <div class="service-list">
+                    <button class="service-btn"><i class="fas fa-broom"></i> Request Housekeeping</button>
+                    <button class="service-btn"><i class="fas fa-utensils"></i> In-Room Dining</button>
+                    <button class="service-btn"><i class="fas fa-bed"></i> Do Not Disturb</button>
+                    <button class="service-btn"><i class="fas fa-suitcase"></i> Luggage Assistance</button>
+                    <button class="service-btn" id="extra-request-btn"><i class="fas fa-plus-circle"></i> Extra Request</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Custom Modal for Extra Request -->
+    <div id="extra-request-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Extra Service Request</h3>
+            <p>Please specify the item or service you need below.</p>
+            <textarea id="extra-request-input" rows="4" placeholder="e.g., 'Extra pillows', 'Shaving kit'"></textarea>
+            <div class="modal-actions">
+                <button id="modal-cancel-btn" class="modal-btn cancel-btn">Cancel</button>
+                <button id="modal-submit-btn" class="modal-btn submit-btn">Submit Request</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Agent Button and Modal -->
+    <button id="ai-agent-btn" class="floating-btn" aria-label="Open Mood Advisor">
+        <i class="fas fa-robot"></i>
+    </button>
+
+    <div id="ai-modal" class="ai-modal-overlay">
+        <div class="ai-modal-content">
+            <div class="ai-modal-header">
+                <h3>Mood Advisor</h3>
+                <button id="ai-close-btn" class="ai-close-btn" style="background:none; border:none; font-size:1.5rem; color:white; cursor:pointer;">&times;</button>
+            </div>
+            <div class="chat-window" id="chat-window" style="height: 100%;">
+                <!-- Messages will be injected here -->
+            </div>
+            <div class="chat-input-area" style="padding: 15px; border-top: 1px solid #e0e0e0;">
+                <input type="text" id="mood-input" placeholder="How are you feeling?" style="flex-grow: 1; border: 1px solid #ddd; border-radius: 8px; padding: 0 15px; font-size: 1rem;">
+                <button id="mood-send-btn" class="temp-btn"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const visitorId = localStorage.getItem('visitorId') || '#guest';
+
+            // --- Function to save a setting to Firestore ---
+            async function saveSetting(key, value) {
+                if (!window.db || visitorId === '#guest') return;
+                const visitorDocRef = window.firebase.doc(window.db, "visitors", visitorId);
+                await window.firebase.setDoc(visitorDocRef, { [key]: value }, { merge: true });
+            }
+
+            // --- Function to update the active scene button based on brightness ---
+            function updateActiveScene(brightness) {
+                sceneButtons.forEach(btn => btn.classList.remove('active'));
+                const sceneMap = {
+                    '80': 'bright',
+                    '40': 'relax',
+                    '15': 'movie',
+                    '0': 'sleep'
+                };
+                const sceneName = sceneMap[brightness];
+                if (sceneName) {
+                    const activeBtn = Array.from(sceneButtons).find(btn => btn.textContent.toLowerCase() === sceneName);
+                    if (activeBtn) {
+                        activeBtn.classList.add('active');
+                    }
+                }
+            }
+
+            // --- Brightness change handler ---
+            function handleBrightnessChange(value) {
+                updateActiveScene(value);
+                saveSetting('roomSettings_brightness', value);
+            }
+
+            // --- Lighting Controls ---
+            const sceneButtons = document.querySelectorAll('.scene-btn');
+            const brightnessSlider = document.getElementById('brightness');
+
+            sceneButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    sceneButtons.forEach(btn => btn.classList.remove('active'));
+                    // Add active class to the clicked button
+                    button.classList.add('active');
+
+                    // Set brightness based on the selected scene and save it
+                    const scene = button.textContent.toLowerCase();
+                    const sceneBrightnessMap = { 'bright': 80, 'relax': 40, 'movie': 15, 'sleep': 0 };
+                    const newBrightness = sceneBrightnessMap[scene];
+                    brightnessSlider.value = newBrightness;
+                    saveSetting('roomSettings_brightness', newBrightness);
+                });
+            });
+
+            // Listen for direct slider changes
+            brightnessSlider.addEventListener('input', (e) => {
+                handleBrightnessChange(e.target.value);
+            });
+
+
+            // --- Temperature Controls ---
+            const tempDisplay = document.querySelector('.temp-display');
+            const tempSlider = document.querySelector('.temp-adjust input[type="range"]');
+            const tempSceneBtns = document.querySelectorAll('.temp-scene-btn');
+            const tempBtns = document.querySelectorAll('.temp-btn');
+            let currentTemp = 22.0;
+
+            const tempSceneMap = { 'auto': 22, 'cool': 20, 'sleep': 19, 'showering': 24 };
+
+            function updateActiveTempScene(temp) {
+                tempSceneBtns.forEach(btn => btn.classList.remove('active'));
+                const sceneName = Object.keys(tempSceneMap).find(key => tempSceneMap[key] === temp);
+                if (sceneName) {
+                    const activeBtn = Array.from(tempSceneBtns).find(btn => btn.textContent.toLowerCase() === sceneName);
+                    if (activeBtn) {
+                        activeBtn.classList.add('active');
+                    }
+                }
+            }
+
+            tempSceneBtns.forEach(button => {
+                button.addEventListener('click', () => {
+                    const scene = button.textContent.toLowerCase();
+                    const newTemp = tempSceneMap[scene];
+                    if (newTemp !== undefined) {
+                        updateTemperature(newTemp);
+                    }
+                });
+            });
+
+            function updateTemperature(newTemp) {
+                const minTemp = parseFloat(tempSlider.min);
+                const maxTemp = parseFloat(tempSlider.max);
+                currentTemp = Math.max(minTemp, Math.min(newTemp, maxTemp));
+
+                updateActiveTempScene(currentTemp);
+
+                tempDisplay.classList.add('updating');
+                setTimeout(() => {
+                    tempDisplay.textContent = `${currentTemp.toFixed(1)}°C`;
+                    tempDisplay.classList.remove('updating');
+                }, 200);
+
+                tempSlider.value = currentTemp.toFixed(1);
+                saveSetting('roomSettings_temperature', currentTemp);
+            }
+
+            tempBtns.forEach(button => {
+                button.addEventListener('click', () => {
+                    const adjustment = button.textContent === '+' ? 0.5 : -0.5;
+                    updateTemperature(currentTemp + adjustment);
+                });
+            });
+
+            tempSlider.addEventListener('input', (e) => {
+                updateTemperature(parseFloat(e.target.value));
+            });
+
+            // --- Service Controls ---
+            const modal = document.getElementById('extra-request-modal');
+            const modalInput = document.getElementById('extra-request-input');
+            const modalCancelBtn = document.getElementById('modal-cancel-btn');
+            const modalSubmitBtn = document.getElementById('modal-submit-btn');
+            const serviceButtons = document.querySelectorAll('.service-btn');
+
+            function showModal() {
+                modal.classList.add('visible');
+            }
+
+            document.getElementById('extra-request-btn').addEventListener('click', () => {
+                showModal();
+            });
+
+            function hideModal() {
+                modalInput.value = ''; // Clear input
+                modal.classList.remove('visible');
+            }
+
+            modalCancelBtn.addEventListener('click', hideModal);
+            modalSubmitBtn.addEventListener('click', () => {
+                const extraRequest = modalInput.value;
+                if (extraRequest && extraRequest.trim() !== "") {
+                    handleServiceRequest(extraRequest.trim(), document.getElementById('extra-request-btn'));
+                    hideModal();
+                }
+            });
+
+            serviceButtons.forEach(button => {
+                if (button.id !== 'extra-request-btn') {
+                    button.addEventListener('click', (event) => {
+                        handleServiceRequest(button.textContent.trim(), button);
+                    });
+                }
+            });
+
+            function handleServiceRequest(requestText, buttonElement) {
+                if (window.db && visitorId !== '#guest') {
+                    const visitorDocRef = window.firebase.doc(window.db, "visitors", visitorId);
+                    const request = {
+                        text: requestText,
+                        timestamp: new Date().toISOString()
+                    };
+                    window.firebase.updateDoc(visitorDocRef, {
+                        serviceRequests: window.firebase.arrayUnion(request)
+                    }).catch(err => console.error("Error updating service requests:", err));
+                }
+                showRequestStatus(buttonElement);
+            }
+
+            function showRequestStatus(button) {
+                const originalText = button.innerHTML;
+                button.innerHTML = `<i class="fas fa-check-circle"></i> Requested!`;
+                button.disabled = true;
+
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }, 3000);
+            }
+
+            // --- Mood Advisor Chat ---
+            const aiAgentBtn = document.getElementById('ai-agent-btn');
+            const aiModal = document.getElementById('ai-modal');
+            const aiCloseBtn = document.getElementById('ai-close-btn');
+            const moodInput = document.getElementById('mood-input');
+            const moodSendBtn = document.getElementById('mood-send-btn');
+            const aiModalContent = document.querySelector('.ai-modal-content');
+            const aiModalHeader = document.querySelector('.ai-modal-header');
+            const chatWindow = document.getElementById('chat-window');
+
+            aiAgentBtn.addEventListener('click', () => {
+                aiModal.style.display = 'flex';
+            });
+
+            // ... (rest of the functions: addMessage, getBotResponse, etc.)
+
+            function getBotResponse(userInput) {
+                const lowerInput = userInput.toLowerCase().trim();
+
+                // Define categories of moods and their keywords
+                const moodCategories = {
+                    energetic: ['happy', 'excited', 'joyful', 'energetic', 'motivated', 'inspired', 'confident', 'cheerful', 'playful', 'strong', 'brave', 'creative', 'determined', 'focused', 'loved', 'grateful', 'hopeful', 'proud', 'amazed', 'relieved', 'elated', 'ecstatic', 'vibrant', 'lively', 'enthusiastic', 'thrilled', 'triumphant', 'radiant', 'blissful', 'rejuvenated', 'optimistic', 'eager', 'amused'],
+                    tired: ['tired', 'sleepy', 'exhausted', 'drained', 'weak', 'lazy', 'dull', 'slow', 'heavy-hearted', 'weary', 'fatigued', 'lethargic', 'sluggish', 'burnt out', 'drowsy', 'somber', 'worn out'],
+                    sad: ['sad','bad', 'disappointed', 'lonely', 'hopeless', 'heartbroken', 'hurt', 'joyless', 'empty', 'lost', 'insecure', 'guilty', 'ashamed', 'unloved', 'ignored', 'devalued', 'unappreciated', 'gloomy', 'melancholy', 'sorrowful', 'downcast', 'despondent', 'grieving', 'miserable', 'isolated', 'abandoned'],
+                    stressed: ['stressed', 'anxious', 'worried', 'overwhelmed', 'nervous', 'tense', 'restless', 'panicked', 'overthinking', 'trapped', 'uncomfortable', 'unsafe', 'frazzled', 'agitated', 'troubled', 'disturbed', 'flustered', 'pressured', 'uptight', 'on edge'],
+                    angry: ['angry', 'frustrated', 'irritated', 'annoyed', 'furious', 'mad', 'grumpy', 'bitter', 'hated', 'jealous', 'envious', 'disgusted', 'enraged', 'outraged', 'infuriated', 'livid', 'resentful', 'indignant', 'exasperated'],
+                    bored: ['bored', 'uninterested', 'distracted', 'underwhelmed', 'lazy', 'uninspired', 'apathetic', 'listless', 'indifferent', 'tedious'],
+                    calm: ['calm', 'relaxed', 'peaceful', 'comfortable', 'satisfied', 'safe', 'thoughtful', 'content', 'light-hearted', 'clear-minded', 'serene', 'tranquil', 'at ease', 'mellow', 'placid', 'untroubled', 'composed'],
+                    confused: ['confused', 'baffled', 'perplexed', 'bewildered', 'uncertain', 'doubtful', 'puzzled'],
+                    curious: ['curious', 'interested', 'thoughtful', 'intrigued', 'inquisitive', 'questioning'],
+                    feeling_hot: ['hot', 'warm', 'sweating', 'boiling', 'overheated'],
+                    feeling_cold: ['cold', 'freezing', 'chilly', 'shivering', 'frosty'],
+                    movie: ['movie', 'watch', 'cinema'],
+                    work: ['work', 'study', 'focus', 'productive'],
+                    greeting: ['hello', 'hi', 'hey', 'greetings']
+                };
+
+                // Find which category the input matches
+                let matchedCategory = null;
+                for (const category in moodCategories) {
+                    // Use .some() to check if any keyword is present in the input
+                    if (moodCategories[category].some(keyword => lowerInput.includes(keyword))) {
+                        matchedCategory = category;
+                        break; // Stop after the first match
+                    }
+                }
+
+                // Generate a response based on the matched category
+                switch (matchedCategory) {
+                    case 'energetic': return { text: "That's wonderful to hear! I'm setting the lights to 'Bright' to match your positive energy.", action: { type: 'set_scene', value: 'bright' } };
+                    case 'tired': return { text: "It sounds like you need some rest. I'm preparing 'Sleep' mode with dim lights and a cool temperature.", action: { type: 'set_scene_and_temp', scene: 'sleep', temp: 19 } };
+                    case 'sad': return { text: "I'm sorry you're feeling this way. I'm setting the 'Relax' scene for you, which has a gentle, warm light.", action: { type: 'set_scene', value: 'relax' } };
+                    case 'stressed': return { text: "Let's create a moment to unwind. I'm setting the lights to 'Relax' and cooling the room down a bit.", action: { type: 'set_scene_and_temp', scene: 'relax', temp: 20 } };
+                    case 'angry': return { text: "I understand. A cooler, calmer environment can help. I'm lowering the temperature and setting the 'Relax' lighting scene.", action: { type: 'set_scene_and_temp', scene: 'relax', temp: 20 } };
+                    case 'bored': return { text: "Feeling bored? Let's liven things up with the 'Bright' lighting scene!", action: { type: 'set_scene', value: 'bright' } };
+                    case 'calm': return { text: "I'm glad you're feeling calm. I'll keep the room just as it is to maintain this peaceful atmosphere for you.", action: null };
+                    case 'confused': return { text: "Sometimes a clear space helps a clear mind. I'm setting the lights to 'Bright' to help you focus.", action: { type: 'set_scene', value: 'bright' } };
+                    case 'curious': return { text: "Curiosity is a great feeling! Let me know if there's a specific ambiance you'd like to explore.", action: null };
+                    case 'feeling_hot': return { text: "It does feel a bit warm. I'm setting the climate control to 'Cool' at 20°C for you.", action: { type: 'set_temp', value: 20 } };
+                    case 'feeling_cold': return { text: "Let's warm things up. I'm setting the temperature to a more comfortable 23°C.", action: { type: 'set_temp', value: 23 } };
+                    case 'movie': return { text: "Movie time! I'll activate the 'Movie' scene. Enjoy the show!", action: { type: 'set_scene', value: 'movie' } };
+                    case 'work': return { text: "Of course. Setting the lights to 'Bright' to help you focus.", action: { type: 'set_scene', value: 'bright' } };
+                    case 'greeting': return { text: "Hello! How can I help you set the mood today?", action: null };
+                    default: return { text: "I'm here to help with room ambiance. You can tell me if you're feeling happy, tired, hot, or cold.", action: null };
+                }
+            }
+
+            function executeBotAction(action) {
+                if (!action) return;
+
+                switch (action.type) {
+                    case 'set_scene':
+                        const sceneBtn = Array.from(sceneButtons).find(btn => btn.textContent.toLowerCase() === action.value);
+                        if (sceneBtn) sceneBtn.click();
+                        break;
+                    case 'set_temp':
+                        updateTemperature(action.value);
+                        break;
+                    case 'set_scene_and_temp':
+                        const targetSceneBtn = Array.from(sceneButtons).find(btn => btn.textContent.toLowerCase() === action.scene);
+                        if (targetSceneBtn) targetSceneBtn.click();
+                        if (action.temp !== undefined) updateTemperature(action.temp);
+                        break;
+                }
+            }
+
+            function addMessage(text, sender, skipAnimation = false) {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('chat-message', sender);
+                messageElement.textContent = text;
+
+                if (skipAnimation) {
+                    messageElement.style.opacity = '1';
+                    messageElement.style.transform = 'translateY(0)';
+                }
+
+                chatWindow.appendChild(messageElement);
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            }
+
+            function saveChatHistory() {
+                const messages = Array.from(chatWindow.children).map(el => ({
+                    text: el.textContent,
+                    sender: el.classList.contains('user') ? 'user' : 'bot'
+                }));
+                saveSetting('moodAdvisor_chatHistory', JSON.stringify(messages));
+            }
+            
+            function handleMoodChat() {
+                const userInput = moodInput.value.trim();
+                if (userInput === '') return;
+
+                addMessage(userInput, 'user'); // Add user message with animation
+                moodInput.value = '';
+
+                // Simulate bot thinking and then responding
+                setTimeout(() => {
+                    const response = getBotResponse(userInput);
+                    addMessage(response.text, 'bot'); // Add bot message with animation
+                    executeBotAction(response.action); // Perform the action
+                    saveChatHistory();
+                }, 1000);
+            }
+
+            moodSendBtn.addEventListener('click', handleMoodChat);
+            moodInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    handleMoodChat();
+                }
+            });
+
+            aiCloseBtn.addEventListener('click', () => {
+                aiModal.style.display = 'none';
+            });
+
+            async function loadChatHistory() {
+                if (!window.db || visitorId === '#guest') return false;
+                const visitorDocRef = window.firebase.doc(window.db, "visitors", visitorId);
+                const docSnap = await window.firebase.getDoc(visitorDocRef);
+
+                if (docSnap.exists() && docSnap.data().moodAdvisor_chatHistory) {
+                    const history = JSON.parse(docSnap.data().moodAdvisor_chatHistory);
+                    if (history.length > 0) {
+                        history.forEach(msg => addMessage(msg.text, msg.sender, true));
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            loadChatHistory().then(hasHistory => {
+                 if (!hasHistory) {
+                     setTimeout(() => {
+                         addMessage("Hello! I'm your Mood Advisor. Tell me how you're feeling, and I can adjust the room for you.", 'bot');
+                     }, 1000);
+                 }
+             });
+
+            // Draggable Modal Logic
+            let isDragging = false;
+            let offsetX, offsetY;
+
+            aiModalHeader.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                aiModalContent.style.position = 'absolute'; // Switch to absolute for dragging
+                offsetX = e.clientX - aiModalContent.offsetLeft;
+                offsetY = e.clientY - aiModalContent.offsetTop;
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+
+            function onMouseMove(e) {
+                if (!isDragging) return;
+                let newX = e.clientX - offsetX;
+                let newY = e.clientY - offsetY;
+                // Constrain to viewport
+                newX = Math.max(0, Math.min(newX, window.innerWidth - aiModalContent.offsetWidth));
+                newY = Math.max(0, Math.min(newY, window.innerHeight - aiModalContent.offsetHeight));
+                aiModalContent.style.left = `${newX}px`;
+                aiModalContent.style.top = `${newY}px`;
+            }
+
+            function onMouseUp() {
+                isDragging = false;
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            }
+
+            // --- Load all saved settings on page load ---
+            async function loadAllSettings() {
+                if (!window.db || visitorId === '#guest') {
+                    // Set a default if nothing is saved
+                    updateActiveScene('80');
+                    return;
+                };
+                const visitorDocRef = window.firebase.doc(window.db, "visitors", visitorId);
+                const docSnap = await window.firebase.getDoc(visitorDocRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.roomSettings_brightness !== undefined) {
+                        brightnessSlider.value = data.roomSettings_brightness;
+                        updateActiveScene(data.roomSettings_brightness);
+                    }
+                    if (data.roomSettings_temperature !== undefined) {
+                        updateTemperature(parseFloat(data.roomSettings_temperature));
+                    }
+                }
+            }
+            loadAllSettings();
+        });
+    </script>
+</body>
+</html>

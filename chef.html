@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chef dashboard HAYYAK</title>
+    <link rel="icon" type="image/x-icon" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Roboto&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #16243d;
+            --secondary: #2a3851;
+            --accent: #D4AF37;
+            --light: #f8f9fa;
+            --dark: #2c3e50;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --danger: #d9534f;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--light);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px 40px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 {
+            font-family: 'Tajawal', sans-serif;
+            font-size: 2.5rem;
+            color: var(--accent);
+            letter-spacing: 1.5em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-left: 1.5em;
+            margin: 0;
+            /* Removed centering styles */
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: normal;
+            padding-left: 0;
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden; /* Prevent scrolling on the main container */
+            padding: 20px;
+            gap: 20px;
+        }
+
+        footer {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            text-align: center;
+            padding: 20px 40px;
+            margin-top: auto;
+            box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .logout-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+        .logout-btn:hover {
+            background: var(--accent);
+            color: var(--primary);
+        }
+
+        /* New Two-Panel Layout */
+        .visitor-list-panel {
+            width: 350px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .search-container {
+            position: relative;
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        #visitor-search {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        #visitor-search:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 8px rgba(22, 36, 61, 0.2);
+        }
+        .search-container .fa-search {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+        }
+
+        .visitor-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .visitor-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .visitor-item:hover {
+            background-color: #f1f3f5;
+        }
+
+        .visitor-item.active {
+            background-color: var(--secondary);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .visitor-id {
+            font-weight: 600;
+        }
+
+        .visitor-indicators {
+            display: flex;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        .visitor-item.active .visitor-indicators {
+            color: white;
+        }
+
+        .visitor-indicators .has-allergy {
+            color: var(--danger);
+        }
+
+        .visitor-details-panel {
+            flex: 1;
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .details-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            color: #999;
+        }
+
+        .details-placeholder i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #ddd;
+        }
+
+        .details-header {
+            color: var(--primary);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2rem;
+            margin: 0 0 25px 0;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 25px;
+        }
+        .tab-link {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #888;
+            position: relative;
+            bottom: -1px;
+        }
+        .tab-link.active {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .info-section h4 {
+            color: var(--secondary);
+            margin-bottom: 10px;
+        }
+
+        .meal-plan {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .meal-type {
+            background: var(--light);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .meal-type h5 {
+            margin: 0 0 10px 0;
+            color: var(--primary);
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .info-list {
+            list-style: none;
+            padding: 0;
+        }
+        .info-list li {
+            background: #f1f3f5;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            text-transform: capitalize;
+            font-weight: 500;
+        }
+        .info-list li.allergy { color: var(--danger); font-weight: 600; }
+        #no-data {
+            font-size: 1.2rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Chef Control Panel</h1>
+        <a href="#" id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </header>
+
+    <div class="main-content">
+        <div class="visitor-list-panel">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="visitor-search" placeholder="Search by Visitor ID (e.g., #2301)">
+            </div>
+            <div class="visitor-list" id="visitor-list">
+                <!-- Visitor items will be injected here -->
+            </div>
+        </div>
+        <div class="visitor-details-panel" id="visitor-details-panel">
+            <!-- Details for the selected visitor will be shown here -->
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; ABDULLA BIN NASSER 2025. All Rights Reserved.</p>
+    </footer>
+    
+    <script type="module">
+        // --- START: Firebase Integration ---
+        import { db, auth } from './firebase-config.js'; // This now points to the correct, new file
+        import { collection, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+        import { signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+        // --- END: Firebase Integration ---
+
+        // Page Protection: Ensure the chef is logged in
+        // if (localStorage.getItem('chefLoggedIn') !== 'true') {
+        //     window.location.href = 'index.html'; // Redirect to main login page
+        // }
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                localStorage.removeItem('chefLoggedIn'); // Clear any remaining local flags
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error("Error signing out: ", error);
+            }
+        });
+
+        const visitorList = document.getElementById('visitor-list');
+        const searchInput = document.getElementById('visitor-search');
+        const detailsPanel = document.getElementById('visitor-details-panel');
+
+        let allVisitorsData = []; // Global store for visitor data
+
+        // Use onSnapshot for real-time updates
+        function listenForVisitors() {
+            const visitorsCollection = collection(db, "visitors");
+            onSnapshot(visitorsCollection, (querySnapshot) => {
+                allVisitorsData = []; // Clear and repopulate the global store
+                querySnapshot.forEach((doc) => allVisitorsData.push({ id: doc.id, data: doc.data() }));
+
+                // Render the list with the new data, which will apply the current search filter
+                renderVisitorList();
+
+                // If a visitor is currently selected, refresh their details
+                const activeVisitorItem = document.querySelector('.visitor-item.active');
+                if (activeVisitorItem) {
+                    const activeVisitorId = activeVisitorItem.dataset.visitorId;
+                    showVisitorDetails(activeVisitorId);
+                }
+            }, (error) => {
+                console.error("Error listening to visitors collection: ", error);
+                visitorList.innerHTML = `<p style="padding: 15px; color: var(--danger);">Could not load visitor data.</p>`;
+            });
+        }
+
+        function renderVisitorList() {
+            visitorList.innerHTML = ''; // Clear the list for re-rendering
+            const searchTerm = searchInput.value.trim().toLowerCase();
+            let filteredVisitors = allVisitorsData;
+            if (searchTerm) {
+                // Filter the globally stored data
+                filteredVisitors = allVisitorsData.filter(visitor => visitor.id.toLowerCase().includes(searchTerm));
+            }
+            filteredVisitors.forEach(visitor => {
+                const visitorId = visitor.id;
+                const dietaryPrefs = visitor.data.dietaryPreferences || {};
+                const serviceRequests = visitor.data.serviceRequests || [];
+                const hasAllergies = (dietaryPrefs.allergies && dietaryPrefs.allergies.length > 0);
+                const hasRequests = serviceRequests.length > 0;
+
+                const item = document.createElement('div');
+                item.className = 'visitor-item';
+                item.dataset.visitorId = visitorId;
+                item.innerHTML = `
+                    <span class="visitor-id">${visitorId}</span>
+                    <span class="visitor-indicators">
+                        ${hasAllergies ? '<i class="fas fa-exclamation-triangle has-allergy" title="Has Allergies"></i>' : ''}
+                        ${hasRequests ? '<i class="fas fa-concierge-bell" title="Has Service Requests"></i>' : ''}
+                    </span>
+                `;
+                item.addEventListener('click', () => showVisitorDetails(visitorId));
+                visitorList.appendChild(item);
+            });
+        }
+
+        async function showVisitorDetails(visitorId) {
+            // Highlight active visitor in the list
+            document.querySelectorAll('.visitor-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.visitorId === visitorId);
+            });
+
+            // Fetch the specific visitor's document from Firestore
+            const visitorDocRef = doc(db, "visitors", visitorId);
+            const visitorDocSnap = await getDoc(visitorDocRef);
+
+            if (visitorDocSnap.exists()) {
+                const visitorData = visitorDocSnap.data();
+                const dietaryPrefs = visitorData.dietaryPreferences || {};
+                const mealPlan = visitorData.mealPlan || {};
+                const serviceRequests = visitorData.serviceRequests || [];
+
+                const allergies = dietaryPrefs.allergies || [];
+                const conditions = dietaryPrefs.conditions || [];
+
+                detailsPanel.innerHTML = `
+                    <h2 class="details-header">Details for: ${visitorId}</h2>
+                    <div class="tabs">
+                        <button class="tab-link active" data-tab="health">Health Profile</button>
+                        <button class="tab-link" data-tab="plan">Meal Plan</button>
+                        <button class="tab-link" data-tab="requests">Service Requests</button>
+                    </div>
+
+                    <div id="health" class="tab-content active">
+                        <div class="info-section">
+                            <h4><i class="fas fa-exclamation-triangle"></i> Allergies</h4>
+                            <ul class="info-list">${allergies.length > 0 ? allergies.map(a => `<li class="allergy">${a}</li>`).join('') : '<li>None specified</li>'}</ul>
+                        </div>
+                        <div class="info-section" style="margin-top: 20px;">
+                            <h4><i class="fas fa-heartbeat"></i> Health Conditions</h4>
+                            <ul class="info-list">${conditions.length > 0 ? conditions.map(c => `<li>${c}</li>`).join('') : '<li>None specified</li>'}</ul>
+                        </div>
+                    </div>
+
+                    <div id="plan" class="tab-content">
+                        <div class="meal-plan">${renderMealPlan(mealPlan)}</div>
+                    </div>
+
+                    <div id="requests" class="tab-content">
+                        <div class="info-section">
+                            <h4><i class="fas fa-concierge-bell"></i> Room Service Requests</h4>
+                            <ul class="info-list">${serviceRequests.length > 0 ? serviceRequests.map(req => `<li>${req.text} <em>(at ${new Date(req.timestamp).toLocaleTimeString()})</em></li>`).join('') : '<li>No service requests</li>'}</ul>
+                        </div>
+                    </div>
+                `;
+
+                // Add event listeners for the new tabs
+                const tabLinks = detailsPanel.querySelectorAll('.tab-link');
+                const tabContents = detailsPanel.querySelectorAll('.tab-content');
+                tabLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        tabLinks.forEach(l => l.classList.remove('active'));
+                        tabContents.forEach(c => c.classList.remove('active'));
+
+                        link.classList.add('active');
+                        document.getElementById(link.dataset.tab).classList.add('active');
+                    });
+                });
+            } else {
+                // doc.data() will be undefined in this case
+                console.log("No such document!");
+                detailsPanel.innerHTML = `<p>Could not find data for visitor ${visitorId}.</p>`;
+            }
+        }
+        
+        function showPlaceholder() {
+            detailsPanel.innerHTML = `
+                <div class="details-placeholder">
+                    <i class="fas fa-users"></i>
+                    <h2>No Visitor Selected</h2>
+                    <p>Select a visitor from the list on the left to view their details.</p>
+                </div>
+            `;
+        }
+
+        function renderMealPlan(mealPlan) {
+            const mealTypes = ['breakfast', 'lunch', 'dinner'];
+            let html = '';
+            mealTypes.forEach(type => {
+                const items = mealPlan[type] || [];
+                html += `<div class="meal-type"><h5>${type.charAt(0).toUpperCase() + type.slice(1)}</h5><ul>`;
+                html += items.length > 0 ? items.map(item => `<li>${item.name}</li>`).join('') : '<li>Not specified</li>';
+                html += `</ul></div>`;
+            });
+            return html || '<p>No meal plan has been created yet.</p>';
+        }
+
+        // Initial setup on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            listenForVisitors(); // Start listening for real-time updates
+            showPlaceholder();
+            // The search input will now just re-render the list with the existing global data
+            searchInput.addEventListener('input', () => {
+                renderVisitorList();
+            });
+        });
+    </script>
+
+</body>
+</html>
