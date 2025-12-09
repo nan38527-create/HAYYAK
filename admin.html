@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Control Panel - HAYYAK</title>
+    <link rel="icon" type="image/x-icon" href="favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Roboto&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- START: Firebase SDK -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+      import { getFirestore, collection, onSnapshot, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+      const firebaseConfig = {
+        apiKey: "AIzaSyCog9kvQI1va08Ra_SXzo7ZiUGchTN3Pec",
+        authDomain: "hayyak-db039.firebaseapp.com",
+        projectId: "hayyak-db039",
+        storageBucket: "hayyak-db039.appspot.com",
+        messagingSenderId: "766242487044",
+        appId: "1:766242487044:web:3e3d4c857afaf88953ee51"
+      };
+      const app = initializeApp(firebaseConfig);
+      window.db = getFirestore(app);
+      window.firebase = { collection, onSnapshot, query, orderBy, limit };
+    </script>
+    <!-- END: Firebase SDK -->
+
+    <style>
+        :root {
+            --primary: #16243d;
+            --secondary: #2a3851;            
+            --accent: #D4AF37; /* Gold */
+            --light: #f8f9fa;
+            --dark: #2c3e50;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px 40px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-search-container {
+            position: relative;
+            width: 40%;
+            max-width: 400px;
+        }
+
+        #global-search {
+            width: 100%;
+            padding: 10px 15px 10px 40px; /* Add padding for icon */
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            outline: none;
+        }
+
+        #global-search::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        #global-search:focus {
+            background: white;
+            color: var(--dark);
+        }
+
+        .header-search-container .fa-search {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        header h1 {
+            font-family: 'Tajawal', sans-serif;
+            font-size: 2.5rem;
+            color: var(--accent);
+        }
+
+        .home-btn {
+            display: inline-block;
+            padding: 10px 50px; /* Increased padding to make it longer */
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
+
+        .home-btn:hover {
+            background: white;
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+        }
+
+        .main-header {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.2rem;
+            color: var(--primary);
+            margin-bottom: 30px;
+        }
+
+        footer {
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 20px 40px;
+        }
+
+        /* Summary Cards */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .card-link {
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition);
+        }
+
+        .card-link:hover .card {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            padding: 15px;
+            border-radius: 50%;
+            color: white;
+        }
+
+        .icon-visitors { background: var(--success); }
+        .icon-crowd { background: var(--warning); }
+        .icon-alerts { background: var(--danger); }
+
+        .card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .card-label {
+            font-size: 1rem;
+            color: #666;
+        }
+
+        /* Chart Containers */
+        .charts-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+        }
+
+        /* New container for bottom section */
+        .bottom-section-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .data-table-container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+        .chart-wrapper {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+
+        .chart-wrapper h3 {
+            font-family: 'Montserrat', sans-serif;
+            margin-bottom: 20px;
+            color: var(--secondary);
+        }
+
+        .table-header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Montserrat', sans-serif;
+            margin-bottom: 20px;
+        }
+
+        .table-header-container h3 {
+            margin: 0;
+            color: var(--secondary);
+        }
+
+        #visitor-log-search {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid #e0e0e0;
+            font-size: 0.9rem;
+            width: 280px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        #visitor-log-search:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 5px rgba(22, 36, 61, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        table th, table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        table thead th {
+            background-color: var(--light);
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        table tbody tr:hover {
+            background-color: #e9ecef;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .status-ok { background: rgba(40, 167, 69, 0.1); color: var(--success); }
+        .status-warning { background: rgba(255, 193, 7, 0.1); color: var(--warning); }
+        .status-danger { background: rgba(220, 53, 69, 0.1); color: var(--danger); }
+
+        /* Activity Feed Styles */
+        .activity-feed-container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+
+        .activity-feed-container h3 {
+            font-family: 'Montserrat', sans-serif;
+            margin-bottom: 20px;
+            color: var(--secondary);
+        }
+
+        .activity-list {
+            list-style: none;
+            padding: 0;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            font-size: 1.2rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .activity-icon.icon-alert { background: var(--danger); }
+        .activity-icon.icon-entry { background: var(--success); }
+        .activity-icon.icon-transit { background: var(--warning); }
+        .activity-icon.icon-info { background: var(--primary); }
+
+        .activity-details p {
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: #999;
+            margin-top: 4px;
+            display: block;
+        }
+
+        /* Animation for new items */
+        .activity-item.new-item, .update-item.new-item {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Live Data Updates Feed */
+        .live-updates-container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .live-updates-container h3 {
+            font-family: 'Montserrat', sans-serif;
+            margin-bottom: 20px;
+            color: var(--secondary);
+        }
+
+        .update-list {
+            list-style: none;
+            padding: 0;
+            flex-grow: 1;
+            overflow-y: auto;
+            max-height: 300px; /* Match chart height */
+        }
+
+        .update-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.95rem;
+        }
+
+        .update-item:last-child {
+            border-bottom: none;
+        }
+
+        .update-icon {
+            font-size: 1.1rem;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .update-icon.temp { background: #ff9f40; } /* Orange */
+        .update-icon.crowd { background: #36a2eb; } /* Blue */
+        .update-icon.wait-time { background: #4bc0c0; } /* Teal */
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .charts-container, .bottom-section-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px;
+            }
+            header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+                padding-bottom: 20px; /* Add space for search bar on mobile */
+            }
+            header h1 {
+                font-size: 1.8rem;
+            }
+            .main-header {
+                font-size: 1.8rem;
+            }
+            .header-search-container {
+                width: 90%;
+                order: 3; /* Make search bar appear last in column layout */
+            }
+        }
+    </style>
+</head>
+<script>
+    let visitorChart = null; // To hold the chart instance
+    let liveUpdatesInterval = null; // To hold the interval ID
+
+    // --- Global state variables to hold data from Firebase ---
+    let allVisitors = [];
+    let allActivities = [];
+
+
+    // --- DOMContentLoaded to ensure elements are loaded ---
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!window.db) {
+            console.error("Firebase not initialized");
+            return;
+        }
+        setupFirebaseListeners();
+        startLiveUpdates();
+
+        const globalSearchBar = document.getElementById('global-search');
+        globalSearchBar.addEventListener('input', renderAllComponents); // Re-render on search
+    });
+
+    function setupFirebaseListeners() {
+        // Listener for Visitors
+        const visitorsQuery = window.firebase.collection(window.db, "visitors");
+        window.firebase.onSnapshot(visitorsQuery, (snapshot) => {
+            allVisitors = []; // Clear and update global state
+            snapshot.forEach(doc => allVisitors.push({ id: doc.id, ...doc.data() }));
+            renderAllComponents(); // Re-render with new data
+        });
+
+        // Listener for Activities
+        const activitiesQuery = window.firebase.query(
+            window.firebase.collection(window.db, "userActivities"),
+            window.firebase.orderBy("timestamp", "desc"),
+            window.firebase.limit(50) // It's good practice to limit real-time feeds
+        );
+        window.firebase.onSnapshot(activitiesQuery, (snapshot) => {
+            allActivities = []; // Clear and update global state
+            snapshot.forEach(doc => allActivities.push(doc.data()));
+            renderAllComponents(); // Re-render with new data
+        });
+    }
+
+    function renderAllComponents() {
+        const searchTerm = document.getElementById('global-search').value.trim().toLowerCase();
+
+        const filteredVisitors = searchTerm ? allVisitors.filter(v => 
+            v.id.toLowerCase().includes(searchTerm) || (v.lastLocation && v.lastLocation.toLowerCase().includes(searchTerm))
+        ) : allVisitors;
+
+        const filteredActivities = searchTerm ? allActivities.filter(a => 
+            a.visitorId.toLowerCase().includes(searchTerm) || a.message.toLowerCase().includes(searchTerm)
+        ) : allActivities;
+
+        renderVisitorLog(filteredVisitors);
+        updateSummaryCards(filteredVisitors);
+        renderCharts(filteredVisitors);
+        renderActivityFeed(filteredActivities);
+    }
+
+    function getStatusBadgeClass(status = 'exploring') {
+        switch (status.toLowerCase()) {
+            case 'exploring': case 'shopping': return 'status-ok';
+            case 'in transit': return 'status-warning';
+            case 'assistance req.': return 'status-danger';
+            default: return 'status-ok';
+        }
+    }
+
+    function renderVisitorLog(visitors) {
+        const tableBody = document.querySelector('#visitor-log-table tbody');
+        tableBody.innerHTML = '';
+        if (visitors.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No visitor data found.</td></tr>';
+            return;
+        }
+        visitors.forEach(visitor => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${visitor.id}</td>
+                <td>${visitor.entryTime || 'N/A'}</td>
+                <td>${visitor.lastLocation || 'Unknown'}</td>
+                <td><span class="status-badge ${getStatusBadgeClass(visitor.status)}">${visitor.status || 'Exploring'}</span></td>
+                <td>${visitor.visitedPlaces || 0}</td>
+                <td>${visitor.badFeelings || 0}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    function updateSummaryCards(visitors) {
+        const totalVisited = visitors.reduce((sum, v) => sum + (v.visitedPlaces || 0), 0);
+        const totalBadFeelings = visitors.reduce((sum, v) => sum + (v.badFeelings || 0), 0);
+        const crowdLevels = visitors.map(v => v.averageCrowdLevel || 0).filter(c => c > 0);
+        const avgCrowd = crowdLevels.length > 0 ? Math.round(crowdLevels.reduce((a, b) => a + b, 0) / crowdLevels.length) : 0;
+
+        document.getElementById('visited-places-value').textContent = totalVisited;
+        document.getElementById('avg-crowd-level-value').textContent = `${avgCrowd}%`;
+        document.getElementById('bad-feelings-value').textContent = totalBadFeelings;
+    }
+
+    function renderActivityFeed(activities) {
+        const activityList = document.querySelector('.activity-feed-container .activity-list');
+        activityList.innerHTML = '';
+        if (activities.length === 0) {
+            activityList.innerHTML = `<li class="activity-item"><p>No recent activity.</p></li>`;
+            return;
+        }
+        activities.slice(0, 10).forEach(activity => {
+            const item = document.createElement('li');
+            item.className = 'activity-item new-item';
+            const timeAgo = activity.timestamp ? new Date(activity.timestamp.seconds * 1000).toLocaleTimeString() : '...';
+            item.innerHTML = `
+                <div class="activity-icon icon-${activity.type}"><i class="${activity.icon}"></i></div>
+                <div class="activity-details">
+                    <p><strong>${activity.visitorId}:</strong> ${activity.message}</p>
+                    <span class="activity-time">${timeAgo}</span>
+                </div>
+            `;
+            activityList.appendChild(item);
+        });
+    }
+
+    function renderCharts(filteredData = null) {
+        const ctx = document.getElementById('visitorTrafficChart').getContext('2d');
+        const labels = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            return d.toLocaleDateString('en-US', { weekday: 'short' });
+        }).reverse();
+
+        let chartData;
+        let chartLabel;
+
+        if (filteredData && filteredData.length === 1) {
+            // Data for a single, searched user
+            const visitorId = filteredData[0].id;
+            chartLabel = `Activity for ${visitorId}`;
+            chartData = Array.from({ length: 7 }, () => Math.floor(Math.random() * 5) + 1); // Lower, random values for one user
+        } else {
+            // Aggregate data for all users
+            chartLabel = 'Total Visitor Activity';
+            chartData = [120, 190, 150, 250, 220, 300, 280].map(v => v + Math.floor(Math.random() * 30 - 15)); // Higher, random values
+        }
+
+        if (visitorChart) {
+            visitorChart.destroy(); // Destroy the old chart instance before creating a new one
+        }
+
+        visitorChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: chartLabel,
+                    data: chartData,
+                    borderColor: 'var(--primary)',
+                    backgroundColor: 'rgba(22, 36, 61, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            }
+        });
+    }
+
+    function startLiveUpdates() {
+        const updatesList = document.getElementById('live-updates-list');
+        const updateTypes = [
+            { type: 'temp', icon: 'fas fa-thermometer-half', label: 'Avg. Temp', unit: '°C', min: 18, max: 25 },
+            { type: 'crowd', icon: 'fas fa-users', label: 'Zone C Crowd', unit: '%', min: 40, max: 85 },
+            { type: 'wait-time', icon: 'fas fa-clock', label: 'Cafe Wait', unit: ' min', min: 5, max: 20 }
+        ];
+
+        if (liveUpdatesInterval) {
+            clearInterval(liveUpdatesInterval);
+        }
+
+        // Initial population
+        updatesList.innerHTML = ''; // Clear first
+        updateTypes.forEach(ut => {
+            const value = Math.floor(Math.random() * (ut.max - ut.min + 1)) + ut.min;
+            const item = createUpdateItem(ut, value);
+            updatesList.appendChild(item);
+        });
+
+        // Start interval for updates
+        liveUpdatesInterval = setInterval(() => {
+            const randomIndex = Math.floor(Math.random() * updateTypes.length);
+            const update = updateTypes[randomIndex];
+            const value = Math.floor(Math.random() * (update.max - update.min + 1)) + update.min;
+
+            const newItem = createUpdateItem(update, value);
+            newItem.classList.add('new-item');
+
+            if (updatesList.firstChild) {
+                updatesList.insertBefore(newItem, updatesList.firstChild);
+            } else {
+                updatesList.appendChild(newItem);
+            }
+
+            if (updatesList.children.length > 10) {
+                updatesList.removeChild(updatesList.lastChild);
+            }
+        }, 4000);
+    }
+
+    function createUpdateItem(update, value) {
+        const item = document.createElement('li');
+        item.className = 'update-item';
+        item.innerHTML = `
+            <div class="update-icon ${update.type}"><i class="${update.icon}"></i></div>
+            <div class="update-details">
+                <strong>${update.label}:</strong> ${value}${update.unit}
+            </div>
+        `;
+        return item;
+    }
+</script>
+<body>
+    <header>
+        <h1>Admin Control Panel</h1>
+        <div class="header-search-container">
+            <i class="fas fa-search"></i>
+            <input type="text" id="global-search" placeholder="Search dashboard...">
+        </div>
+        <a href="index.html" class="home-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </header>
+
+    <main class="main-content">
+     
+
+        <div class="summary-cards">
+            <div class="card">
+                <div class="card-icon icon-visitors"><i class="fas fa-route"></i></div>
+                <div class="card-info">
+                    <div class="card-value" id="visited-places-value">0</div>
+                    <div class="card-label" id="visited-places-label">Total Places Visited</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon icon-crowd"><i class="fas fa-street-view"></i></div>
+                <div class="card-info">
+                    <div class="card-value" id="avg-crowd-level-value">0%</div>
+                    <div class="card-label" id="avg-crowd-label">Avg. Crowd Level</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon icon-alerts"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="card-info">
+                    <div class="card-value" id="bad-feelings-value">0</div>
+                    <div class="card-label" id="bad-feelings-label">Bad Feelings Reported</div>
+                </div>
+            </div>
+        </div>
+
+            <div class="charts-container">
+                <div class="chart-wrapper">
+                    <h3>Visitor Traffic (Last 7 Days)</h3>
+                    <canvas id="visitorTrafficChart"></canvas>
+                </div>
+                <div class="live-updates-container">
+                    <h3>Live Data Updates</h3>
+                    <ul id="live-updates-list" class="update-list"></ul>
+                </div>
+            </div>
+
+            <div class="bottom-section-container">
+                <div class="data-table-container">
+                    <div class="table-header-container">
+                        <h3>Detailed Visitor Log</h3>
+                    </div>
+                    <table id="visitor-log-table">
+                        <thead>
+                            <tr>
+                                <th>Visitor ID</th>
+                                <th>Entry Time</th>
+                                <th>Last Location</th>
+                                <th>Status</th>
+                                <th>Places Visited</th>
+                                <th>Bad Feelings</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="activity-feed-container">
+                    <h3>Recent Activity</h3>
+                    <ul class="activity-list">
+                        <!-- Activity items will be dynamically inserted here -->
+                    </ul>
+                </div>
+            </div>
+    

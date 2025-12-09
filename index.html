@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - HAYYAK</title>
+    <link rel="icon" type="image/x-icon" href="favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Cairo:wght@900&family=Montserrat:wght@600;700&family=Roboto&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #16243d;
+            --secondary: #2a3851;
+            --accent: #D4AF37; /* Gold */
+            --light: #f8f9fa;
+            --dark: #2c3e50;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --danger: #dc3545;
+            --transition: all 0.3s ease;
+        }
+
+        /* --- START: Custom Font Definition --- */
+        @font-face {
+            font-family: 'Afeesh'; /* We give our font a name */
+            /* Make sure the path to your font file is correct */
+            src: url('afeesh.ttf') format('truetype'); /* Corrected path to look in the current folder */
+
+            font-weight: normal;
+            font-style: normal;
+        }
+        /* --- END: Custom Font Definition --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+       header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px 40px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        header h1 {
+            font-family: 'Afeesh', 'Amiri', serif; /* Use Afeesh font first */
+            font-weight: 700;
+            font-size: 4.5rem;
+            color: var(--accent);
+            letter-spacing: 0.2em; /* Spacing for Afeesh font */
+            white-space: nowrap;
+        }
+           footer {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            text-align: center;
+            padding: 20px 40px;
+            margin-top: auto;
+            box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        main {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+        .login-container {
+            background: var(--light);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .login-container h1 {
+            font-family: 'Tajawal', sans-serif;
+            font-size: 3rem;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+        .login-container p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 5px rgba(22, 36, 61, 0.2);
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px 25px;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .social-links a {
+            color: var(--light);
+            margin: 0 10px;
+            font-size: 1.5rem;
+            transition: var(--transition);
+        }
+        .social-links a:hover {
+            color: var(--accent);
+        }
+    </style>
+    
+</head>
+<body>
+<header>
+            <h1>حــــــيــــــاك</h1>
+    </header>
+    <main>
+        <div class="login-container">
+            <h1>Login</h1>
+            <p>Welcome! Please log in to continue.</p>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn">Login</button>
+            </form>
+            <p id="error-message" style="color: var(--danger); margin-top: 15px; height: 20px;"></p>
+        </div>
+    </main>
+   
+    <footer>
+        <p>&copy; ABDULLA BIN NASSER 2025. All Rights Reserved.</p>
+    </footer>
+    <!-- Import Firebase modules -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { auth } from './firebase-config.js'; // This now points to the correct, new file
+        import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+
+        document.getElementById('login-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = ''; // Clear previous errors
+
+            // --- NEW, SIMPLER METHOD ---
+            // 1. Put your own real email address here.
+            const yourRealEmail = "nan38527@gmail.com"; // <--- REPLACE THIS with your actual email
+
+            // 2. This code constructs the aliased email (e.g., your-email+Admin1@example.com)
+            const [emailUser, emailDomain] = yourRealEmail.split('@');
+            const email = `${emailUser}+${username}@${emailDomain}`;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Signed in 
+                    const user = userCredential.user;
+                    console.log('Successfully signed in:', user.email);
+
+                    // Determine user type and redirect
+                    if (username.toLowerCase().startsWith('admin')) {
+                        window.location.href = 'admin.html';
+                    } else if (username.toLowerCase().startsWith('chef')) {
+                        localStorage.setItem('chefLoggedIn', 'true'); // Still needed for chef page protection
+                        window.location.href = 'chef.html';
+                    } else if (username.toLowerCase().startsWith('user')) {
+                        const userIdNumber = username.replace('user', '');
+                        localStorage.setItem('visitorId', `#${userIdNumber}`);
+                        window.location.href = 'homePage.html';
+                    } else {
+                        // Fallback for any other user type
+                        window.location.href = 'homePage.html';
+                    }
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMsg = error.message;
+                    console.error(`Firebase Auth Error (${errorCode}):`, errorMsg);
+                    errorMessage.textContent = 'Invalid username or password.';
+                });
+        });
+    </script>
+    <script>
+        // The old script block has been replaced by the Firebase module script above.
+    </script>
+</body>
+</html>
